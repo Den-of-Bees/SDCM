@@ -7,9 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const moveDir = join(__dirname, '../../test');
-const outputDir = join(__dirname, '../../output');
+const outputDir = join(__dirname, '../../output/build');
 
-// Create output directory if it doesn't exist
 if (!existsSync(outputDir)) {
     mkdirSync(outputDir);
 }
