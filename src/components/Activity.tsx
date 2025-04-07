@@ -4,11 +4,12 @@ import {
   } from 'lucide-react';
 import { ActivityProps } from './system/StateEngine';
   
-const Activity: React.FunctionComponent< ActivityProps> =
- ({activeSidebarIcon, setActiveSidebarIcon, sidebarCollapsed, setSidebarCollapsed}) => {
+const Activity=
+ ({activeSidebarIcon, setActiveSidebarIcon, sidebarCollapsed, setSidebarCollapsed}:
+  ActivityProps ) => {
     const Activities = [
         { icon: FileText,
-          action: () =>setSidebarCollapsed(!sidebarCollapsed),
+          action: () => console.log("Files clicked"),
         },
         { icon: Search,
           action: () => console.log("Search clicked"),
@@ -27,7 +28,16 @@ const Activity: React.FunctionComponent< ActivityProps> =
         key={index}
         className={`p-2 mb-2 rounded hover:bg-gray-700 cursor-pointer 
             ${activeSidebarIcon === index ? 'bg-gray-700 text-white' : ''}`}
-        onClick={() => {setActiveSidebarIcon(index); action()}}>
+        onClick={() => {
+          if(activeSidebarIcon === index )
+            setSidebarCollapsed(!sidebarCollapsed);
+          else {
+            setActiveSidebarIcon(index)
+            if(sidebarCollapsed)
+              setSidebarCollapsed(!sidebarCollapsed);
+            action()
+            }
+        }}>
         <Icon size={24} />
       </div>
     ))}

@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Activity from './Activity';
 import EditorView from './EditorView';
 import Filebar from './Filebar';
-import { FileNode, init_files, init_tabs, } from './system/StateEngine';
+import { useStateEngine, } from './system/StateEngine';
+import { Panel } from './Panel';
+import { Tabbar } from './Tabbar';
+import { Statusbar } from './Statusbar';
 
 const MainView: React.FC = () => {
-    const [tabs, setTabs] = useState(init_tabs)
-    const [files, setFiles] = useState<FileNode[]>(init_files)
-    const [activeFile, setActiveFile] = useState<string | null>(null);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
-    const [activeTab, setActiveTab] = useState<number>(0);
-    const [activeSidebarIcon, setActiveSidebarIcon] = useState<number>(0);
-
-    
+  const {tabs,
+    files, setFiles,
+    activeFile, setActiveFile,
+    sidebarCollapsed, setSidebarCollapsed,
+    activeSidebarIcon, setActiveSidebarIcon,
+    activeTab, setActiveTab
+  } = useStateEngine()
 
     return (
     <div className="flex h-screen bg-gray-900 text-gray-300 overflow-hidden">
@@ -30,8 +32,13 @@ const MainView: React.FC = () => {
       setActiveFile={setActiveFile}/>)}
       
       {/* Main Editor Area */}
-      {<EditorView tabs={tabs} activeTab={activeTab} 
-      setActiveTab={setActiveTab} />}
+      {
+        <Panel>
+          <Tabbar tabs={tabs} activeTab={activeTab} 
+          setActiveTab={setActiveTab} />
+          <EditorView />
+          <Statusbar/>
+        </Panel>}
       
     </div>
   );

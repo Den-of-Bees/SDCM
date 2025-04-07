@@ -37,7 +37,8 @@ return (
 };
   
   
-const  Filebar  =({files, setSidebarCollapsed, setFiles, setActiveFile}:FilebarProps)=>{
+const  Filebar  =(props:FilebarProps)=>{
+  const {setSidebarCollapsed, files} =props
    return( <div className="w-64 bg-gray-800 flex flex-col border-r border-gray-700">
             <div className="p-3 uppercase text-xs font-bold border-b border-gray-700 flex justify-between items-center">
               Explorer
@@ -46,7 +47,7 @@ const  Filebar  =({files, setSidebarCollapsed, setFiles, setActiveFile}:FilebarP
               </button>
             </div>
             <div className="p-2">            
-              <FileTree files={files} all={files} level={0} setFiles={setFiles} setActiveFile={setActiveFile}/>
+              <FileTree {...props} all={files} level={0} />
             </div>
         </div>
     )

@@ -1,5 +1,26 @@
 import { FileText } from "lucide-react";
+import { useMemo, useState } from "react";
 
+export const  useStateEngine = ()=>{
+  const [tabs, setTabs] = useState(init_tabs)
+  const [files, setFiles] = useState<FileNode[]>(init_files)
+  const [activeFile, setActiveFile] = useState<string | null>(null);
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [activeSidebarIcon, setActiveSidebarIcon] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<number>(0);
+  
+  const uiState = useMemo(() => ({
+    tabs, setTabs,
+    files, setFiles,
+    activeFile, setActiveFile,
+    sidebarCollapsed, setSidebarCollapsed,
+    activeSidebarIcon, setActiveSidebarIcon,
+    activeTab, setActiveTab,
+  }), [tabs, files, activeFile, sidebarCollapsed, activeSidebarIcon, activeTab]);
+  
+  return uiState
+}
 export type Tabs = {
   name: string;
   icon: React.ReactNode;
@@ -56,3 +77,4 @@ export const init_tabs:Tabs = [
     { name: 'package.json', isFolder: false },
     { name: 'README.md', isFolder: false }
   ];
+
