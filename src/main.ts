@@ -2,7 +2,6 @@ import { app, BrowserWindow, dialog, ipcMain, webContents } from 'electron';
 import path from 'node:path';
 import fs,{ readFile } from 'fs/promises';
 import started from 'electron-squirrel-startup';
-import { deploy_script } from './deploy';
 import { FileNode } from './components/system/StateEngine';
 
 const home = path.join(__dirname,'../../src')
@@ -21,9 +20,6 @@ const start = async ()=>{
 
   
 }
-
-
-
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {

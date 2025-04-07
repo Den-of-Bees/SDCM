@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-    FileText, Settings, Search, GitBranch, 
+    FileText, Settings, Search, GitBranch, Cuboid
   } from 'lucide-react';
 import { ActivityProps } from './system/StateEngine';
   
@@ -20,6 +20,10 @@ const Activity=
         { icon: Settings,
           action: () => console.log("Settings clicked"),
         },
+        { icon: Cuboid,
+          action: () => console.log("Cuboid clicked"),
+
+        }
       ];
 
     return (<div className="w-12 bg-gray-900 flex flex-col items-center py-2 border-r border-gray-800">
