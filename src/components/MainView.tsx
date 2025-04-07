@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Activity from './Activity';
 import EditorView from './EditorView';
 import Filebar from './Filebar';
@@ -15,7 +15,7 @@ const MainView: React.FC = () => {
     activeSidebarIcon, setActiveSidebarIcon,
     activeTab, setActiveTab
   } = useStateEngine()
-
+  useEffect(()=>{window.fileAPI.onMessage((msg)=>alert(msg))},[])
     return (
     <div className="flex h-screen bg-gray-900 text-gray-300 overflow-hidden">
       {/* Activity Bar */}

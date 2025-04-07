@@ -1,15 +1,38 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, webContents } from 'electron';
 import path from 'node:path';
+import fs,{ readFile } from 'fs/promises';
 import started from 'electron-squirrel-startup';
+import { deploy_script } from './deploy';
+import { FileNode } from './components/system/StateEngine';
+
+const home = path.join(__dirname,'../../src')
+
+
+ipcMain.handle('load-file', async (_, filePath) => {
+  const content = await fs.readFile(filePath, 'utf-8');
+  return content;
+});
+let mainWindow: BrowserWindow
+const start = async ()=>{
+  const res = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  
+  mainWindow.webContents.send("msg", res.filePaths[0])
+  
+
+  
+}
+
+
+
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
 
-const createWindow = () => {
+const createWindow = async () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -26,6 +49,7 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+  await start()
 };
 
 // This method will be called when Electron has finished
