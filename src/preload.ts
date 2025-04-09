@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron"
 import { FileNode } from "./components/system/StateEngine";
-
+import { SessionData } from './components/system/StateEngine';
 // export const api = {
 //     node: () => process.versions.node,
 //     chrome: () => process.versions.chrome,
@@ -21,12 +21,18 @@ export const fileAPI = {
 
 export const suiClient = {
   loadConfig: (filePath: string) => ipcRenderer.invoke("load-sui-config", filePath),
-  runSuiBuild: async () => ipcRenderer.invoke('sui-command'),
+  runSuiBuild: () => ipcRenderer.invoke('sui-command'),
   // we can also expose variables, not just functions
 }
 
 export const networkAPI = {
   loadFile: (filePath: string) => ipcRenderer.invoke("load-net-file", filePath),
+  // we can also expose variables, not just functions
+}
+
+export const sessionAPI = {
+  saveSession: (data: SessionData) => ipcRenderer.invoke("save-session", data),
+  loadSession: () => ipcRenderer.invoke("load-session"),
   // we can also expose variables, not just functions
 }
 
@@ -37,9 +43,12 @@ declare global {
     };
     fileAPI: typeof fileAPI;
     networkAPI: typeof networkAPI;
-  }
+    sessionAPI: {
+      loadSession: () => Promise<SessionData>;
+      saveSession: (data: Partial<SessionData>) => Promise<boolean>;
+  };  }
 }
 contextBridge.exposeInMainWorld("fileAPI", fileAPI)
 contextBridge.exposeInMainWorld("suiClient", suiClient)
 contextBridge.exposeInMainWorld("networkAPI", networkAPI)
-
+contextBridge.exposeInMainWorld("sessionAPI", sessionAPI)

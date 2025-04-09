@@ -4,6 +4,7 @@ import fs,{ readFile } from 'fs/promises';
 import started from 'electron-squirrel-startup';
 import { FileNode } from './components/system/StateEngine';
 import { runSuiBuild } from './scripts/build';
+import { SessionManager } from './sessionManager';
 const home = path.join(__dirname,'../../src')
 
 
@@ -36,6 +37,18 @@ ipcMain.handle('load-file', async (_, filePath) => {
   return content;
 });
 
+ipcMain.handle('save-session', async (_, data) => {
+  const sessionManager = new SessionManager();
+  await sessionManager.saveSession(data);
+}
+);
+
+ipcMain.handle('load-session', async () => {
+  const sessionManager = new SessionManager();
+  const sessionData = await sessionManager.loadSession();
+  return sessionData;
+});
+
 
 let mainWindow: BrowserWindow
 
@@ -57,12 +70,16 @@ const start = async ()=>{
   console.log(res.filePaths[0])
   if (res.canceled) {
     console.log("cancelled")
-    return
+  } else {
+    mainWindow.webContents.send("msg", res.filePaths[0])
   }
   
-  mainWindow.webContents.send("msg", res.filePaths[0])
   
+  //Load session
+  const sessionManager = new SessionManager();
+  const sessionData = await sessionManager.loadSession();
 
+  console.log(sessionData)
   
 }
 

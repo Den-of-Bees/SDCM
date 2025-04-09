@@ -163,3 +163,10 @@ export const init_state = {
   activeTab: 0,
   activityIcon: 0,
 }
+
+export interface SessionData {
+  lastOpenedPath?: string;
+  outPutFilePath?: string;
+  timestamp: number;
+  platform: string;
+}
