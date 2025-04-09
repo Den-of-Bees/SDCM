@@ -3,8 +3,9 @@ import path from 'node:path';
 import fs,{ readFile } from 'fs/promises';
 import started from 'electron-squirrel-startup';
 import { FileNode } from './components/system/StateEngine';
-
+import { runSuiBuild } from './scripts/build';
 const home = path.join(__dirname,'../../src')
+
 
 
 // const async buildFileTree = (dirPath)=> {
@@ -34,9 +35,30 @@ ipcMain.handle('load-file', async (_, filePath) => {
   const content = await fs.readFile(filePath, 'utf-8');
   return content;
 });
+
+
 let mainWindow: BrowserWindow
+
+ipcMain.handle('sui-command', async () => {
+  try {
+      const result = runSuiBuild();
+      return { success: true, message: result };
+  } catch (error: any) {
+      return { success: false, message: error.message };
+  }
+});
+
+
+
+
+
 const start = async ()=>{
   const res = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  console.log(res.filePaths[0])
+  if (res.canceled) {
+    console.log("cancelled")
+    return
+  }
   
   mainWindow.webContents.send("msg", res.filePaths[0])
   

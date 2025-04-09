@@ -21,6 +21,7 @@ export const fileAPI = {
 
 export const suiClient = {
   loadConfig: (filePath: string) => ipcRenderer.invoke("load-sui-config", filePath),
+  runSuiBuild: async () => ipcRenderer.invoke('sui-command'),
   // we can also expose variables, not just functions
 }
 
@@ -31,7 +32,9 @@ export const networkAPI = {
 
 declare global {
   interface Window {
-    suiClient: typeof suiClient;
+    suiClient: {
+      runSuiBuild: () => Promise<{ success: boolean; message: string }>,
+    };
     fileAPI: typeof fileAPI;
     networkAPI: typeof networkAPI;
   }

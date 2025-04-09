@@ -11,7 +11,7 @@ const moveDir = join(__dirname, '../../test');
 const outputDir = join(__dirname, '../../output/build');
 
 if (!existsSync(outputDir)) {
-    mkdirSync(outputDir);
+    mkdirSync(outputDir, { recursive: true });
 }
 
 export function runSuiBuild() {
