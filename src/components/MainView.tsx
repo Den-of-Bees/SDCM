@@ -1,41 +1,59 @@
-import React from 'react';
-import Activity from './Activity';
-import EditorView from './EditorView';
-import Filebar from './Filebar';
-import { useStateEngine } from './system/StateEngine';
-import { Panel } from './Panel';
-import { Tabbar } from './Tabbar';
-import { Statusbar } from './Statusbar';
-import SearchPanel from './SearchPanel';
-import GitPanel from './GitPanel';
-import SettingsPanel from './SettingsPanel';
-import SuiActions from './SuiActions';
+import React, { useEffect, useReducer } from "react"
+import Activity from "./Activity"
+import EditorView from "./EditorView"
+import Filebar from "./Filebar"
+import { init_state, selectActivity, selectCollapsed, selectFile, uiReducer, selectEditor, selectTab} from "./system/StateEngine"
+import { Panel } from "./Panel"
+import { Tabbar } from "./Tabbar"
+import { Statusbar } from "./Statusbar"
+import SearchPanel from "./SearchPanel"
+import GitPanel from "./GitPanel"
+import SettingsPanel from "./SettingsPanel"
+import SuiActions from "./SuiActions"
 
 const MainView: React.FC = () => {
-  const {tabs, files, setFiles, activeFile, setActiveFile, sidebarCollapsed, setSidebarCollapsed, activeSidebarIcon, setActiveSidebarIcon, activeTab, setActiveTab} = useStateEngine();
+ 
 
+  useEffect(() => {
+    window.fileAPI.onMessage((msg) => alert(msg))
+  }, [])
+ const [uiState, dispatch] =useReducer(uiReducer,init_state)
   const renderActivePanel = () => {
-    switch (activeSidebarIcon) {
-      case 0: return <Filebar files={files} setSidebarCollapsed={setSidebarCollapsed} setFiles={setFiles} setActiveFile={setActiveFile} />;
-      case 1: return <SearchPanel />;
-      case 2: return <GitPanel />;
-      case 3: return <SettingsPanel />;
-      case 4: return <SuiActions />;
-      default: return null;
+    switch (uiState.activityIcon) {
+      case 0:
+        return (
+          <Filebar
+            {...selectFile(uiState)}
+            dispatch={dispatch}
+          />
+        )
+      case 1:
+        return <SearchPanel />
+      case 2:
+        return <GitPanel />
+      case 3:
+        return <SettingsPanel />
+      case 4:
+        return <SuiActions />
+      default:
+        return null
     }
-  };
+  }
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-300 overflow-hidden">
-      <Activity activeSidebarIcon={activeSidebarIcon} setActiveSidebarIcon={setActiveSidebarIcon} setSidebarCollapsed={setSidebarCollapsed} sidebarCollapsed={sidebarCollapsed} />
-      {!sidebarCollapsed && renderActivePanel()}
+      <Activity
+        {...selectActivity(uiState)}
+        dispatch={dispatch}
+      />
+      {!uiState.sidebarCollapsed && renderActivePanel()}
       <Panel>
-        <Tabbar tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
-        <EditorView />
+        <Tabbar {...selectTab(uiState)} dispatch={dispatch} />
+        <EditorView  {...selectEditor(uiState)} dispatch={dispatch} />
         <Statusbar />
       </Panel>
     </div>
-  );
-};
+  )
+}
 
-export default MainView;
+export default MainView

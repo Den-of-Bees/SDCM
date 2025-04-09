@@ -5,7 +5,7 @@ import {
 import { ActivityProps } from './system/StateEngine';
   
 const Activity=
- ({activeSidebarIcon, setActiveSidebarIcon, sidebarCollapsed, setSidebarCollapsed}:
+ React.memo(({ dispatch, ...props}:
   ActivityProps ) => {
     const Activities = [
         { icon: FileText,
@@ -31,21 +31,19 @@ const Activity=
       <div 
         key={index}
         className={`p-2 mb-2 rounded hover:bg-gray-700 cursor-pointer 
-            ${activeSidebarIcon === index ? 'bg-gray-700 text-white' : ''}`}
-        onClick={() => {
-          if(activeSidebarIcon === index )
-            setSidebarCollapsed(!sidebarCollapsed);
-          else {
-            setActiveSidebarIcon(index)
-            if(sidebarCollapsed)
-              setSidebarCollapsed(!sidebarCollapsed);
-            action()
-            }
+            ${props.activityIcon === index ? 'bg-gray-700 text-white' : ''}`}
+        onClick={
+          () => {
+            dispatch(
+              {type:'siderbar-activity-check',
+                index:index
+              });
+            action()          
         }}>
         <Icon size={24} />
       </div>
     ))}
   </div>)
-}
+})
 
  export default Activity

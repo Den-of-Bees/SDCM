@@ -7,6 +7,29 @@ import { FileNode } from './components/system/StateEngine';
 const home = path.join(__dirname,'../../src')
 
 
+// const async buildFileTree = (dirPath)=> {
+//   const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+//   const tree = await Promise.all(entries.map(async entry => {
+//     const fullPath = path.join(dirPath, entry.name);
+//     if (entry.isDirectory()) {
+//       return {
+//         name: entry.name,
+//         isFolder: true,
+//         isOpen: false, // You can choose to default to true if you want it expanded
+//         children: await buildFileTree(fullPath),
+//       };
+//     } else {
+//       return {
+//         name: entry.name,
+//         isFolder: false,
+//       };
+//     }
+//   }));
+
+//   return tree;
+// }
+
 ipcMain.handle('load-file', async (_, filePath) => {
   const content = await fs.readFile(filePath, 'utf-8');
   return content;
@@ -29,10 +52,15 @@ if (started) {
 const createWindow = async () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1024,
+    height: 768,
     webPreferences: {
+      nodeIntegration: false, // Disable Node.js integration in renderer process for security
+      contextIsolation: true, // Isolate the context between the renderer and the main process
       preload: path.join(__dirname, 'preload.js'),
+      sandbox: true, // Enable sandboxing for the renderer process
+      webSecurity: true, // Ensure web security is enabled
+      allowRunningInsecureContent: false, // Disable running insecure content
     },
   });
 

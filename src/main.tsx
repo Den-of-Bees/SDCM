@@ -4,7 +4,7 @@ import './index.css'
 import App from './App'
 
 createRoot(document.body!).render(
-  <StrictMode>
+  // <StrictMode>
     <App />
-  </StrictMode>,
+  // </StrictMode>,
 )

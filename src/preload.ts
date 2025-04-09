@@ -10,9 +10,11 @@ import { FileNode } from "./components/system/StateEngine";
 
 export const fileAPI = {
   loadFile: (filePath: string) => ipcRenderer.invoke("load-file", filePath),
+  
   onMessage: (callback:(msg:string)=>void) => ipcRenderer.on("msg", 
-    (_, data)=>{console.log("Sending directory message to renderer");callback(data)}),
-  onFileTree: (callback:(files:FileNode[])=>void) => ipcRenderer.on("msg", 
+    (_, data)=>callback(data)),
+
+  onFileTree: (callback:(files:FileNode[])=>void) => ipcRenderer.on("file-tree", 
     (_, data)=>callback(data)),
   // we can also expose variables, not just functions
 }
