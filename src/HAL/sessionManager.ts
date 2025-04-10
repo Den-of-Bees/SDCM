@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { existsSync, mkdirSync } from 'fs';
 import os from 'os';
-import { SessionData } from './components/system/StateEngine';
+import { SessionData } from '../components/system/StateEngine';
 
 
 export class SessionManager {

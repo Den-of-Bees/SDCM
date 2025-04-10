@@ -4,7 +4,7 @@ import fs,{ readFile } from 'fs/promises';
 import started from 'electron-squirrel-startup';
 import { FileNode } from './components/system/StateEngine';
 import { runSuiBuild } from './scripts/build';
-import { SessionManager } from './sessionManager';
+import { SessionManager } from './HAL/sessionManager';
 const home = path.join(__dirname,'../../src')
 
 
