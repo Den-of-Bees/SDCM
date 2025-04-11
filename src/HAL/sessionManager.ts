@@ -11,17 +11,22 @@ export class SessionManager {
     private sessionFile: string;
     private platform: string;
 
-    constructor() {
-        this.platform = os.platform();
-        const appDataPath = app.getPath('appData');
-        this.sessionPath = path.join(appDataPath, 'sdcm');
-        this.sessionFile = path.join(this.sessionPath, 'session.json');
-        
-        console.log('Session file location:', this.sessionFile);
+    private constructor(sessionPath: string) {
+        this.sessionPath = sessionPath;
+        this.sessionFile = path.join(sessionPath, 'session.json');
+        this.platform = os.platform() === 'win32' ? 'windows' : os.platform() === 'darwin' ? 'mac' : 'linux';
+    }
 
-        if (!existsSync(this.sessionPath)) {
-            mkdirSync(this.sessionPath, { recursive: true });
+    static async init(): Promise<SessionManager> {
+        const sessionPath = path.join(app.getPath('appData'), 'sdcm');
+
+        try {
+            await fs.access(sessionPath);
+        } catch {
+            await fs.mkdir(sessionPath, { recursive: true });
         }
+
+        return new SessionManager(sessionPath);
     }
 
     async saveSession(data: Partial<SessionData>): Promise<void> {
@@ -32,7 +37,7 @@ export class SessionManager {
                 platform: this.platform,
                 timestamp: Date.now()
             };
-            await fs.writeFile(this.sessionFile, JSON.stringify(sessionData, null, 2));
+            await fs.writeFile(this.sessionPath, JSON.stringify(sessionData, null, 2));
         } catch (error) {
             console.error('Failed to save session:', error);
         }
@@ -45,12 +50,13 @@ export class SessionManager {
         };
     }
     
-    async loadSession(): Promise<SessionData> {
+    async loadSession(newDirectory?: string): Promise<SessionData> {
         try {
-            if (!existsSync(this.sessionFile)) {
-                const defaultSession = this.getDefaultSession();
-                await fs.writeFile(this.sessionFile, JSON.stringify(defaultSession, null, 2));
-                return defaultSession;
+            try {
+                await fs.access(this.sessionFile);
+            }
+            catch {
+                await fs.writeFile(this.sessionFile, JSON.stringify(this.getDefaultSession(), null, 2));
             }
     
             const data = await fs.readFile(this.sessionFile, 'utf-8');

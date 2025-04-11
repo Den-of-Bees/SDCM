@@ -38,13 +38,13 @@ ipcMain.handle('load-file', async (_, filePath) => {
 });
 
 ipcMain.handle('save-session', async (_, data) => {
-  const sessionManager = new SessionManager();
+  const sessionManager = await SessionManager.init();
   await sessionManager.saveSession(data);
 }
 );
 
 ipcMain.handle('load-session', async () => {
-  const sessionManager = new SessionManager();
+  const sessionManager = await SessionManager.init();
   const sessionData = await sessionManager.loadSession();
   return sessionData;
 });
@@ -66,20 +66,21 @@ ipcMain.handle('sui-command', async () => {
 
 
 const start = async ()=>{
-  const res = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+  const sessionManager = await SessionManager.init();
+  const res = await dialog.showOpenDialog({ properties: ['openFile'] })
   console.log(res.filePaths[0])
   if (res.canceled) {
     console.log("cancelled")
+    const sessionData = await sessionManager.loadSession();
   } else {
     mainWindow.webContents.send("msg", res.filePaths[0])
+    const sessionData = await sessionManager.loadSession(res.filePaths[0]);
+    console.log(sessionData)
   }
   
   
   //Load session
-  const sessionManager = new SessionManager();
-  const sessionData = await sessionManager.loadSession();
 
-  console.log(sessionData)
   
 }
 
