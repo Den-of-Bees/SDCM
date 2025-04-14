@@ -16,7 +16,8 @@ export type Action =
   | { type: 'set-active'; filePath: string }
   | { type: 'Sidebar-toggle' }
   | { type: 'siderbar-close' }
-  | { type: 'siderbar-activity-check'; index: number };
+  | { type: 'siderbar-activity-check'; index: number }
+  | { type: 'mark-dirty'; filePath: string; dirty: boolean };
 
   export const uiReducer = (uiState: typeof init_state, action: Action) => {
     switch (action.type) {
@@ -67,7 +68,7 @@ export type Action =
           return { ...uiState, activeFile: action.filePath }
         }
 
-        uiState.tabs.push({ name: action.filename, icon: <FileText size={16} />, path: action.filePath })
+        uiState.tabs.push({ name: action.filename, icon: <FileText size={16} />, path: action.filePath , isDirty: false })
         return { ...uiState, activeFile: action.filePath }
 
       
@@ -86,6 +87,13 @@ export type Action =
           sidebarCollapsed: uiState.sidebarCollapsed ? false : uiState.sidebarCollapsed
         }
   
+      case 'mark-dirty': {
+        const updatedTabs = uiState.tabs.map(tab =>
+          tab.path === action.filePath ? { ...tab, isDirty: action.dirty } : tab
+        )
+        return { ...uiState, tabs: updatedTabs }
+      }
+        
       default:
         throw new Error("Unknown action: " + (action as any).type)
     }
@@ -107,7 +115,8 @@ export const selectFile = (state: typeof init_state) => ({
  export type Tabs = {
   name: string         
   icon: React.ReactNode
-  path: string      
+  path: string,
+  isDirty: boolean      
 }[]
 
 export interface FileNode {
@@ -136,7 +145,8 @@ export interface tabbarProps  {
   tabs:{
       name:string;
       icon:React.ReactNode;
-      path: string
+      path: string;
+      isDirty: boolean;
       }[];
   activeFile: string;
   dispatch: React.Dispatch<Action>

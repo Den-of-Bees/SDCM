@@ -8,6 +8,10 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
   const [language, setLanguage] = useState("typescript")
   const [platform, setPlatform] = useState("")
   const [session, setSession] = useState<SessionData | null>(null)
+  const ignoreModelChangeRef = useRef(false)
+  const editorRef = useRef<HTMLDivElement | null>(null)
+  const editorInitialized = useRef(false)
+  const monacoInstance = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
   const handleOpenFolder = async () => {
     const selectedPath = await window.fileAPI.promptOpenDialog()
@@ -32,10 +36,6 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
     return null
   }
 
-  const editorRef = useRef<HTMLDivElement | null>(null)
-  const editorInitialized = useRef(false)
-  const monacoInstance = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
-
   useEffect(() => {
     if (editorRef.current && !editorInitialized.current && activeFile) {
       monacoInstance.current = monaco.editor.create(editorRef.current, {
@@ -44,6 +44,20 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
         theme: "vs-dark",
         automaticLayout: true,
       })
+
+      monacoInstance.current.onDidChangeModelContent(() => {
+        if (ignoreModelChangeRef.current) {
+          ignoreModelChangeRef.current = false // skip this one
+          return
+        }
+      
+        const currentValue = monacoInstance.current!.getValue()
+        if (currentValue !== content) {
+          dispatch({ type: 'mark-dirty', filePath: activeFile, dirty: true })
+        }
+      })
+      
+
       editorInitialized.current = true
     }
   
@@ -75,6 +89,7 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
   
         // Update editor content and language after state updates
         if (monacoInstance.current) {
+          ignoreModelChangeRef.current = true
           monacoInstance.current.setValue(fileContent || "// File not found or empty")
           monaco.editor.setModelLanguage(monacoInstance.current.getModel()!, newLanguage)
         }
@@ -97,7 +112,6 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
 
   useEffect(() => {
     const handleSaveShortcut = (e: KeyboardEvent) => {
-      //Check session object for platform
       const isMac = platform === "mac"
       const isWindows = platform === "windows"
       const isLinux = platform === "linux"
@@ -113,6 +127,7 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
             .catch(err => {
               console.error("Failed to save file:", err)
             })
+            dispatch({ type: 'mark-dirty', filePath: activeFile, dirty: false })
         }
       }
     }
