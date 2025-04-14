@@ -8,7 +8,6 @@ import { buildFileTree } from './HAL/buildFileTree'
 
 let mainWindow: BrowserWindow
 
-// ✅ IPC handlers
 ipcMain.handle('load-file', async (_, filePath) => {
   return await fs.readFile(filePath, 'utf-8')
 })
@@ -52,7 +51,6 @@ ipcMain.handle('validate-path', async (_, pathToCheck: string) => {
   }
 })
 
-// 🪟 Create main window
 const createWindow = async () => {
   mainWindow = new BrowserWindow({
     width: 1024,
@@ -74,12 +72,10 @@ const createWindow = async () => {
   mainWindow.webContents.openDevTools()
 }
 
-// 🧹 Windows shortcut cleanup
 if (started) {
   app.quit()
 }
 
-// 🧠 App lifecycle
 app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
