@@ -17,6 +17,7 @@ export const fileAPI = {
   promptOpenDialog: async () => ipcRenderer.invoke('prompt-open-dialog'),
   buildFileTree: async (path: string) => ipcRenderer.invoke('build-file-tree', path),
   validatePath: async (path: string) => ipcRenderer.invoke('validate-path', path),
+  saveFile: (filePath: string, content: string) => ipcRenderer.invoke('save-file', filePath, content),
 }
 
 export const suiClient = {

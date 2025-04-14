@@ -12,6 +12,13 @@ ipcMain.handle('load-file', async (_, filePath: string) => {
   const content = await fs.readFile(filePath, 'utf-8')
   return content
 })
+
+ipcMain.handle('save-file', async (_, filePath: string, content: string) => {
+  const fs = await import('fs/promises')
+  await fs.writeFile(filePath, content, 'utf-8')
+  return { success: true }
+})
+
 ipcMain.handle('save-session', async (_, data) => {
   const sessionManager = await SessionManager.init()
   await sessionManager.saveSession(data)

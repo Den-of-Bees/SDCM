@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef, use } from "react"
 import * as monaco from 'monaco-editor';
-import { EditorViewProps, FileNode } from "./system/StateEngine"
+import { EditorViewProps, FileNode, SessionData } from "./system/StateEngine"
 import WelcomeView from "./WelcomeView"
 
 const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
   const [content, setContent] = useState("// Loading...")
   const [language, setLanguage] = useState("typescript")
+  const [platform, setPlatform] = useState("")
+  const [session, setSession] = useState<SessionData | null>(null)
 
   const handleOpenFolder = async () => {
     const selectedPath = await window.fileAPI.promptOpenDialog()
@@ -80,7 +82,47 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
     }
   
     loadContent()
-}, [activeFile])
+  }, [activeFile])
+
+  useEffect(() => {
+    const loadPlatform = async () => {
+      const session = await window.sessionAPI.loadSession()
+      if (session?.platform) {
+        setPlatform(session.platform)
+      }
+    }
+  
+    loadPlatform()
+  }, [])
+
+  useEffect(() => {
+    const handleSaveShortcut = (e: KeyboardEvent) => {
+      //Check session object for platform
+      const isMac = platform === "mac"
+      const isWindows = platform === "windows"
+      const isLinux = platform === "linux"
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.key === 's') {
+        e.preventDefault()
+  
+        if (activeFile && monacoInstance.current) {
+          const content = monacoInstance.current.getValue()
+          window.fileAPI.saveFile(activeFile, content)
+            .then(() => {
+              console.log(`Saved ${activeFile}`)
+            })
+            .catch(err => {
+              console.error("Failed to save file:", err)
+            })
+        }
+      }
+    }
+  
+    window.addEventListener("keydown", handleSaveShortcut)
+    return () => window.removeEventListener("keydown", handleSaveShortcut)
+  }, [activeFile])
+  
+
+
   
 
   return (
