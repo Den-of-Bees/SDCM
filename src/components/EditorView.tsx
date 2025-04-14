@@ -47,7 +47,7 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
 
       monacoInstance.current.onDidChangeModelContent(() => {
         if (ignoreModelChangeRef.current) {
-          ignoreModelChangeRef.current = false // skip this one
+          ignoreModelChangeRef.current = false
           return
         }
       
@@ -87,7 +87,6 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
         setLanguage(newLanguage)
         setContent(fileContent || "// File not found or empty")
   
-        // Update editor content and language after state updates
         if (monacoInstance.current) {
           ignoreModelChangeRef.current = true
           monacoInstance.current.setValue(fileContent || "// File not found or empty")
