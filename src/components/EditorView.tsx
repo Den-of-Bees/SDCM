@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react"
-import MonacoEditor from "@monaco-editor/react"
+import React, { useEffect, useState, useRef, use } from "react"
+import * as monaco from 'monaco-editor';
 import { EditorViewProps, FileNode } from "./system/StateEngine"
 import WelcomeView from "./WelcomeView"
 
@@ -29,52 +29,76 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
     }
     return null
   }
+
+  const editorRef = useRef<HTMLDivElement | null>(null)
+  const editorInitialized = useRef(false)
+  const monacoInstance = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
+
+  useEffect(() => {
+    if (editorRef.current && !editorInitialized.current && activeFile) {
+      monacoInstance.current = monaco.editor.create(editorRef.current, {
+        value: content,
+        language: language,
+        theme: "vs-dark",
+        automaticLayout: true,
+      })
+      editorInitialized.current = true
+    }
   
+    return () => {
+      monacoInstance.current?.dispose()
+      editorInitialized.current = false
+    }
+  }, [activeFile])
+  
+  
+
 
   useEffect(() => {
     const loadContent = async () => {
       if (activeFile) {
         const fileContent = await window.fileAPI.loadFile(activeFile)
-        console.log("File content loaded:", fileContent)
-        if (!fileContent) {
-          setContent("// File not found or empty")
-          return
-        }
-        setContent(fileContent)
-
         const ext = activeFile.split('.').pop()
-        if (ext === "ts" || ext === "tsx") setLanguage("typescript")
-        else if (ext === "js") setLanguage("javascript")
-        else if (ext === "json") setLanguage("json")
-        else if (ext === "move") setLanguage("plaintext")
-        else if (ext === "rs") setLanguage("rust")
-        else if (ext == "py") setLanguage("python")
-        else setLanguage("plaintext")
+        console.log("File extension:", ext)
+  
+        const newLanguage = ext === "ts" || ext === "tsx" ? "typescript"
+          : ext === "js" ? "javascript"
+          : ext === "json" ? "json"
+          : ext === "py" ? "python"
+          : ext === "rs" ? "rust"
+          : "plaintext";
+
+        setLanguage(newLanguage)
+        setContent(fileContent || "// File not found or empty")
+  
+        // Update editor content and language after state updates
+        if (monacoInstance.current) {
+          monacoInstance.current.setValue(fileContent || "// File not found or empty")
+          monaco.editor.setModelLanguage(monacoInstance.current.getModel()!, newLanguage)
+        }
       }
     }
-
+  
     loadContent()
-  }, [activeFile])
-
-  if (!activeFile) return <WelcomeView onOpenClick={handleOpenFolder} />
+}, [activeFile])
+  
 
   return (
-    <div className="flex-1 bg-gray-900 p-0 overflow-hidden">
-      <MonacoEditor
-        height="100%"
-        theme="vs-dark"
-        language={language}
-        value={content}
-        onChange={(value) => {
+    <div className="flex-1 bg-gray-900 w-full h-full overflow-hidden">
+      {!activeFile ? (
+        <WelcomeView onOpenClick={handleOpenFolder} />
+      ) : (
+        <div
+          ref={editorRef}
+          style={{
+            width: "100%",
+            height: "100vh",
           }}
-        options={{
-          fontSize: 14,
-          minimap: { enabled: false },
-          wordWrap: 'on',
-        }}
-      />
+        />
+      )}
     </div>
   )
+  
 }
 
 export default EditorView
