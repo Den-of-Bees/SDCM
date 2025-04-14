@@ -8,68 +8,86 @@ import { useMemo, useState } from "react"
 //   filename?:string
 //  }
 
-export const uiReducer = (uiState: typeof init_state, action: { 
-  type: string;
-  index?: number
-  file?:FileNode
-  filename?:string
- }) => {
-  switch (action.type) {
-    case "Sidebar-toggle":
-      return { ...uiState, sidebarCollapsed: !uiState.sidebarCollapsed }
-      
-    case "siderbar-close":
-      return { ...uiState, sidebarCollapsed: true }
-    
-    case "file-change":
-      action.file.isOpen = !action.file.isOpen
-      return { ...uiState }
-    
-    case "close-file":{
-      const t= uiState.tabs
-      const index = t.findIndex(tab=>tab.name ===action.filename)
-      
-       if(uiState.activeFile === action.filename){
-        if (index ==0){
-          if(t.length == 1){
-            return{ ...uiState, tabs: [], activeFile: '' }}
-          else{
-            uiState = {...uiState, activeFile: t[1].name}
-            return { ...uiState, 
-              tabs: t.filter(tab=>tab.name !==action.filename)}
+export type Action =
+  | { type: 'file-change'; file: FileNode }
+  | { type: 'load-files'; files: FileNode[] }
+  | { type: 'open-file'; filename: string }
+  | { type: 'close-file'; filename: string }
+  | { type: 'set-active'; filename: string }
+  | { type: 'Sidebar-toggle' }
+  | { type: 'siderbar-close' }
+  | { type: 'siderbar-activity-check'; index: number };
+
+  export const uiReducer = (uiState: typeof init_state, action: Action) => {
+    switch (action.type) {
+      case "Sidebar-toggle":
+        return { ...uiState, sidebarCollapsed: !uiState.sidebarCollapsed }
+  
+      case "siderbar-close":
+        return { ...uiState, sidebarCollapsed: true }
+  
+      case "file-change":
+        action.file.isOpen = !action.file.isOpen
+        return { ...uiState }
+  
+      case "load-files":
+        return {
+          ...uiState,
+          files: action.files,
+          tabs: [],
+          activeFile: ''
+        }
+  
+      case "close-file": {
+        const t = uiState.tabs
+        const index = t.findIndex(tab => tab.name === action.filename)
+  
+        if (uiState.activeFile === action.filename) {
+          if (index === 0) {
+            if (t.length === 1) {
+              return { ...uiState, tabs: [], activeFile: '' }
+            } else {
+              uiState = { ...uiState, activeFile: t[1].name }
+              return {
+                ...uiState,
+                tabs: t.filter(tab => tab.name !== action.filename)
+              }
+            }
           }
         }
+  
+        return {
+          ...uiState,
+          tabs: t.filter(tab => tab.name !== action.filename)
+        }
       }
-          
-      return { ...uiState,
-        tabs: t.filter(tab=>tab.name !==action.filename), }
-    }
-    
-    case 'open-file':
-      if(uiState.tabs.some(tab=>tab.name === action.filename))
+  
+      case "open-file":
+        if (uiState.tabs.some(tab => tab.name === action.filename)) {
+          return { ...uiState, activeFile: action.filename }
+        }
+  
+        uiState.tabs.push({ name: action.filename, icon: <FileText size={16} /> })
         return { ...uiState, activeFile: action.filename }
-
-      uiState.tabs.push( { name: action.filename, icon: <FileText size={16} /> })
-      uiState = {...uiState  }
-
-      // eslint-disable-next-line no-fallthrough
-    case "set-active":
-      return { ...uiState, activeFile: action.filename }
-
-    case "siderbar-activity-check":
-      if (uiState.activityIcon === action.index) 
-        uiState = { ...uiState, sidebarCollapsed: !uiState.sidebarCollapsed }
-      else {
-        uiState = { ...uiState, activityIcon: action.index }
-        if (uiState.sidebarCollapsed) 
+  
+      case "set-active":
+        return { ...uiState, activeFile: action.filename }
+  
+      case "siderbar-activity-check":
+        if (uiState.activityIcon === action.index)
           return { ...uiState, sidebarCollapsed: !uiState.sidebarCollapsed }
-      }
-      return uiState
-      
-    default:
-      throw Error("Unknown action: " + action.type)
+  
+        return {
+          ...uiState,
+          activityIcon: action.index,
+          sidebarCollapsed: uiState.sidebarCollapsed ? false : uiState.sidebarCollapsed
+        }
+  
+      default:
+        throw new Error("Unknown action: " + (action as any).type)
+    }
   }
-}
+  
 
 export const selectCollapsed = (state: typeof init_state) => ({ collasped: state.sidebarCollapsed })
 export const selectActivity = (state: typeof init_state) => ({  activityIcon: state.activityIcon })
@@ -97,18 +115,18 @@ export interface FileNode {
 }
 export interface ActivityProps {
   activityIcon: number
-  dispatch: React.ActionDispatch<[action: { type: string }]>
+  dispatch: React.Dispatch<Action>
 }
 export interface FilebarProps {
   files: FileNode[]
   activeFile:string
-  dispatch: React.ActionDispatch<[action: { type: string }]>
+  dispatch: React.Dispatch<Action>
 }
 export interface FileTreeProps {
   files: FileNode[]
   level: number
   activeFile:string
-  dispatch: React.ActionDispatch<[action: { type: string }]>
+  dispatch: React.Dispatch<Action>
 }
 export interface tabbarProps  {
   tabs:{
@@ -116,13 +134,14 @@ export interface tabbarProps  {
       icon:React.ReactNode;
       }[];
   activeFile: string;
-  dispatch: React.ActionDispatch<[action: { type: string }]>
+  dispatch: React.Dispatch<Action>
 }
 export interface EditorViewProps {
-  activeFile:string
-  content?:string
-  dispatch: React.ActionDispatch<[action: { type: string }]>
+  activeFile: string
+  content?: string
+  dispatch: React.Dispatch<Action>
 }
+
 /* Dummy data */
 export const init_tabs: Tabs = [
   { name: "index.tsx", icon: <FileText size={16} /> },

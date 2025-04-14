@@ -10,6 +10,7 @@ export class SessionManager {
     private sessionPath: string;
     private sessionFile: string;
     private platform: string;
+    private data: SessionData;
 
     private constructor(sessionPath: string) {
         this.sessionPath = sessionPath;
@@ -31,17 +32,19 @@ export class SessionManager {
 
     async saveSession(data: Partial<SessionData>): Promise<void> {
         try {
-            const sessionData: SessionData = {
-                ...await this.loadSession(),
-                ...data,
-                platform: this.platform,
-                timestamp: Date.now()
-            };
-            await fs.writeFile(this.sessionPath, JSON.stringify(sessionData, null, 2));
+          const existing = await this.loadSession();
+          const sessionData: SessionData = {
+            ...existing,
+            ...data,
+            platform: this.platform,
+            timestamp: Date.now(), // Always number, not from renderer
+          };
+          await fs.writeFile(this.sessionFile, JSON.stringify(sessionData, null, 2));
         } catch (error) {
-            console.error('Failed to save session:', error);
+          console.error('Failed to save session:', error);
         }
-    }
+      }
+      
 
     private getDefaultSession(): SessionData {
         return {

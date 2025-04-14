@@ -18,6 +18,27 @@ const MainView: React.FC = () => {
     window.fileAPI.onMessage((msg) => alert(msg))
   }, [])
  const [uiState, dispatch] =useReducer(uiReducer,init_state)
+
+  useEffect(() => {
+    const loadWorkspace = async () => {
+      const session = await window.sessionAPI.loadSession()
+
+      if (session.lastOpenedPath) {
+        const isValid = await window.fileAPI.validatePath(session.lastOpenedPath)
+        if (isValid) {
+          const tree = await window.fileAPI.buildFileTree(session.lastOpenedPath)
+          dispatch({ type: 'load-files', files: tree })
+          return
+        }
+      }
+      dispatch({ type: 'load-files', files: [] })
+    }
+
+    loadWorkspace()
+  }, [])
+
+
+
   const renderActivePanel = () => {
     switch (uiState.activityIcon) {
       case 0:
