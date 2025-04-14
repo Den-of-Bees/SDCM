@@ -11,9 +11,9 @@ import { useMemo, useState } from "react"
 export type Action =
   | { type: 'file-change'; file: FileNode }
   | { type: 'load-files'; files: FileNode[] }
-  | { type: 'open-file'; filename: string }
+  | { type: 'open-file'; filename: string; filePath: string }
   | { type: 'close-file'; filename: string }
-  | { type: 'set-active'; filename: string }
+  | { type: 'set-active'; filePath: string }
   | { type: 'Sidebar-toggle' }
   | { type: 'siderbar-close' }
   | { type: 'siderbar-activity-check'; index: number };
@@ -62,16 +62,19 @@ export type Action =
         }
       }
   
-      case "open-file":
-        if (uiState.tabs.some(tab => tab.name === action.filename)) {
-          return { ...uiState, activeFile: action.filename }
+      case 'open-file':
+        if (uiState.tabs.some(tab => tab.path === action.filePath)) {
+          return { ...uiState, activeFile: action.filePath }
         }
+
+        uiState.tabs.push({ name: action.filename, icon: <FileText size={16} />, path: action.filePath })
+        return { ...uiState, activeFile: action.filePath }
+
+      
   
-        uiState.tabs.push({ name: action.filename, icon: <FileText size={16} /> })
-        return { ...uiState, activeFile: action.filename }
-  
-      case "set-active":
-        return { ...uiState, activeFile: action.filename }
+      case 'set-active':
+        return { ...uiState, activeFile: action.filePath }
+        
   
       case "siderbar-activity-check":
         if (uiState.activityIcon === action.index)
@@ -101,10 +104,10 @@ export const selectFile = (state: typeof init_state) => ({
                           activeFile: state.activeFile
  })
 
-export type Tabs = {
-  name: string
+ export type Tabs = {
+  name: string         
   icon: React.ReactNode
-  
+  path: string      
 }[]
 
 export interface FileNode {
@@ -112,6 +115,7 @@ export interface FileNode {
   isFolder: boolean
   children?: FileNode[]
   isOpen?: boolean
+  path: string
 }
 export interface ActivityProps {
   activityIcon: number
@@ -132,6 +136,7 @@ export interface tabbarProps  {
   tabs:{
       name:string;
       icon:React.ReactNode;
+      path: string
       }[];
   activeFile: string;
   dispatch: React.Dispatch<Action>
@@ -142,43 +147,43 @@ export interface EditorViewProps {
   dispatch: React.Dispatch<Action>
 }
 
-/* Dummy data */
-export const init_tabs: Tabs = [
-  { name: "index.tsx", icon: <FileText size={16} /> },
-  { name: "App.tsx", icon: <FileText size={16} /> },
-  { name: "styles.css", icon: <FileText size={16} /> },
-]
+// /* Dummy data */
+// export const init_tabs: Tabs = [
+//   { name: "index.tsx", icon: <FileText size={16} /> },
+//   { name: "App.tsx", icon: <FileText size={16} /> },
+//   { name: "styles.css", icon: <FileText size={16} /> },
+// ]
 
-export const init_files: FileNode[] = [
-  {
-    name: "src",
-    isFolder: true,
-    isOpen: true,
-    children: [
-      {
-        name: "components",
-        isFolder: true,
-        isOpen: false,
-        children: [
-          { name: "Header.tsx", isFolder: false },
-          { name: "Sidebar.tsx", isFolder: false },
-        ],
-      },
-      { name: "App.tsx", isFolder: false },
-      { name: "index.tsx", isFolder: false },
-      { name: "styles.css", isFolder: false },
-    ],
-  },
-  { name: "public", isFolder: true, isOpen: false, children: [{ name: "index.html", isFolder: false }] },
-  { name: "package.json", isFolder: false },
-  { name: "README.md", isFolder: false },
-]
+// export const init_files: FileNode[] = [
+//   {
+//     name: "src",
+//     isFolder: true,
+//     isOpen: true,
+//     children: [
+//       {
+//         name: "components",
+//         isFolder: true,
+//         isOpen: false,
+//         children: [
+//           { name: "Header.tsx", isFolder: false },
+//           { name: "Sidebar.tsx", isFolder: false },
+//         ],
+//       },
+//       { name: "App.tsx", isFolder: false },
+//       { name: "index.tsx", isFolder: false },
+//       { name: "styles.css", isFolder: false },
+//     ],
+//   },
+//   { name: "public", isFolder: true, isOpen: false, children: [{ name: "index.html", isFolder: false }] },
+//   { name: "package.json", isFolder: false },
+//   { name: "README.md", isFolder: false },
+// ]
 
 export const init_state = {
-  files: init_files,
-  tabs: init_tabs,
+  files: [] as FileNode[],
+  tabs: [] as Tabs,
   sidebarCollapsed: false,
-  activeFile: 'index.tsx',
+  activeFile: '',
   activeTab: 0,
   activityIcon: 0,
 }

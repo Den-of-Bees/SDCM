@@ -8,10 +8,10 @@ import { buildFileTree } from './HAL/buildFileTree'
 
 let mainWindow: BrowserWindow
 
-ipcMain.handle('load-file', async (_, filePath) => {
-  return await fs.readFile(filePath, 'utf-8')
+ipcMain.handle('load-file', async (_, filePath: string) => {
+  const content = await fs.readFile(filePath, 'utf-8')
+  return content
 })
-
 ipcMain.handle('save-session', async (_, data) => {
   const sessionManager = await SessionManager.init()
   await sessionManager.saveSession(data)

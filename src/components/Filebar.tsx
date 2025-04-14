@@ -14,7 +14,8 @@ const FileTree = ({ files, level, activeFile, dispatch  }: FileTreeProps) => {
               ${activeFile===file.name?'bg-gray-700':''}`}
             onClick={() =>
               file.isFolder ? dispatch({type:'file-change', file:file}) :
-               dispatch({type:'open-file', filename:file.name})
+              dispatch({ type: 'open-file', filename: file.name, filePath: file.path })
+
             }
             >
             {file.isFolder ? (
@@ -47,9 +48,9 @@ const FileTree = ({ files, level, activeFile, dispatch  }: FileTreeProps) => {
 
 const Filebar = ({ dispatch, ...props }: FilebarProps) => {
   return (
-    <div className="w-64 bg-gray-800 flex flex-col border-r border-gray-700">
+    <div className="w-64 bg-gray-800 flex flex-col border-r border-gray-700 h-full">
       <div className="p-3 uppercase text-xs font-bold border-b border-gray-700 flex 
-        justify-between items-center">
+        justify-between items-center shrink-0">
         Explorer
         <button
           onClick={() => dispatch({ type: "siderbar-close" })}
@@ -58,7 +59,8 @@ const Filebar = ({ dispatch, ...props }: FilebarProps) => {
           <ChevronLeft size={16} />
         </button>
       </div>
-      <div className="p-2">
+      <div className="p-2 overflow-y-auto flex-1 no-scrollbar">
+
         <FileTree {...props} dispatch={dispatch} level={0} />
       </div>
     </div>
