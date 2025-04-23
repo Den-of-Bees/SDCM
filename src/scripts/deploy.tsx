@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+import { writeFileSync, existsSync, unlinkSync } from "fs";
 import { join } from "path";
 import { SuiObjectChange, SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { executeCliCommand } from "../HAL/cliRunner";
@@ -10,6 +10,23 @@ interface DeployOptions {
 
 export async function runSuiDeploy({ moveDir, outputDir }: DeployOptions) {
     try {
+        const lockFilePath = join(moveDir, 'Move.lock');
+        if (existsSync(lockFilePath)) {
+            console.log(`Found lock file at ${lockFilePath}. Removing it before deployment.`);
+            try {
+                unlinkSync(lockFilePath);
+                console.log('Lock file removed successfully.');
+            } catch (unlinkError) {
+                console.error('Error removing lock file:', unlinkError);
+                return {
+                    success: false,
+                    message: `Unable to remove lock file at ${lockFilePath}. Please delete it manually.`,
+                    error: unlinkError
+                };
+            }
+        }
+        
+        // Now proceed with deployment
         const result = await executeCliCommand('sui', [
             'client', 
             'publish', 
@@ -44,6 +61,7 @@ export async function runSuiDeploy({ moveDir, outputDir }: DeployOptions) {
                     }
                 }
             } catch (parseError) {
+                console.error('Error parsing deployment result:', parseError);
             }
         }
 

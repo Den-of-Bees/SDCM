@@ -16,6 +16,8 @@ const SuiActions = () => {
     const [session, setSession] = useState<SessionData | null>(null);
     const [currentDir, setCurrentDir] = useState<string>('');
     const [outputDir, setOutputDir] = useState<string>('');
+    const [sui, setSui] = useState<any>(null);
+    const [network, setNetwork] = useState<any>(null);
 
     useEffect(() => {
         const loadSession = async () => {
