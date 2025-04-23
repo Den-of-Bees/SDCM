@@ -157,38 +157,6 @@ export interface EditorViewProps {
   dispatch: React.Dispatch<Action>
 }
 
-// /* Dummy data */
-// export const init_tabs: Tabs = [
-//   { name: "index.tsx", icon: <FileText size={16} /> },
-//   { name: "App.tsx", icon: <FileText size={16} /> },
-//   { name: "styles.css", icon: <FileText size={16} /> },
-// ]
-
-// export const init_files: FileNode[] = [
-//   {
-//     name: "src",
-//     isFolder: true,
-//     isOpen: true,
-//     children: [
-//       {
-//         name: "components",
-//         isFolder: true,
-//         isOpen: false,
-//         children: [
-//           { name: "Header.tsx", isFolder: false },
-//           { name: "Sidebar.tsx", isFolder: false },
-//         ],
-//       },
-//       { name: "App.tsx", isFolder: false },
-//       { name: "index.tsx", isFolder: false },
-//       { name: "styles.css", isFolder: false },
-//     ],
-//   },
-//   { name: "public", isFolder: true, isOpen: false, children: [{ name: "index.html", isFolder: false }] },
-//   { name: "package.json", isFolder: false },
-//   { name: "README.md", isFolder: false },
-// ]
-
 export const init_state = {
   files: [] as FileNode[],
   tabs: [] as Tabs,
@@ -200,7 +168,7 @@ export const init_state = {
 
 export interface SessionData {
   lastOpenedPath?: string;
-  outPutFilePath?: string;
+  outputFilePath?: string;
   timestamp: number;
   platform: string;
 }

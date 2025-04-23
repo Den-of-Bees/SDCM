@@ -94,5 +94,6 @@ out/
 *-lock*
 
 test/
+hello_world/
 
 output/

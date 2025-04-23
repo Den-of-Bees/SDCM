@@ -22,7 +22,8 @@ export const fileAPI = {
 
 export const suiClient = {
   loadConfig: (filePath: string) => ipcRenderer.invoke("load-sui-config", filePath),
-  runSuiBuild: () => ipcRenderer.invoke('sui-command'),
+  runSuiBuild: (buildDir: string, outputDir: string) => ipcRenderer.invoke('sui-build', buildDir, outputDir),
+  runSuiDeploy: (buildDir: string, outputDir: string) => ipcRenderer.invoke('sui-deploy', buildDir, outputDir),
   // we can also expose variables, not just functions
 }
 
@@ -40,14 +41,15 @@ export const sessionAPI = {
 declare global {
   interface Window {
     suiClient: {
-      runSuiBuild: () => Promise<{ success: boolean; message: string }>,
+      runSuiBuild: (buildDir: string, outputDir: string) => Promise<{ success: boolean; message: string }>,
+      runSuiDeploy: (buildDir: string, outputDir: string) => Promise<{ success: boolean; message: string }>,
     };
     fileAPI: typeof fileAPI;
     networkAPI: typeof networkAPI;
     sessionAPI: {
       loadSession: () => Promise<SessionData>;
       saveSession: (data: Partial<SessionData>) => Promise<boolean>;
-  };  }
+  };}
 }
 
 contextBridge.exposeInMainWorld("fileAPI", fileAPI)

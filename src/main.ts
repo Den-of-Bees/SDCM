@@ -5,6 +5,7 @@ import started from 'electron-squirrel-startup'
 import { runSuiBuild } from './scripts/build'
 import { SessionManager } from './HAL/sessionManager'
 import { buildFileTree } from './HAL/buildFileTree'
+import { runSuiDeploy } from './scripts/deploy'
 
 let mainWindow: BrowserWindow
 
@@ -29,15 +30,26 @@ ipcMain.handle('load-session', async () => {
   return await sessionManager.loadSession()
 })
 
-ipcMain.handle('sui-command', async () => {
+ipcMain.handle('sui-build', async (_, buildDir: string, outputDir: string) => {
   try {
-    const result = runSuiBuild()
-    return { success: true, message: result }
+    const result = runSuiBuild({ moveDir: buildDir, outputDir })
+    return result
   } catch (error: any) {
     return { success: false, message: error.message }
   }
 })
 
+ipcMain.handle('sui-deploy', async (_, buildDir: string, outputDir: string) => {
+  try {
+      const result = await runSuiDeploy({ moveDir: buildDir, outputDir });
+      return result;
+  } catch (error: any) {
+      return { 
+          success: false, 
+          message: error.message 
+      };
+  }
+});
 ipcMain.handle('build-file-tree', async (_, pathToUse) => {
   return await buildFileTree(pathToUse)
 })

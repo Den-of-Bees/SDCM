@@ -82,6 +82,7 @@ const EditorView: React.FC<EditorViewProps> = ({ activeFile, dispatch }) => {
           : ext === "json" ? "json"
           : ext === "py" ? "python"
           : ext === "rs" ? "rust"
+          : ext === "move" ? "rust"
           : "plaintext";
 
         setLanguage(newLanguage)
