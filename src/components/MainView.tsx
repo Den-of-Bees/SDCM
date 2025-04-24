@@ -10,6 +10,7 @@ import SearchPanel from "./SearchPanel"
 import GitPanel from "./GitPanel"
 import SettingsPanel from "./SettingsPanel"
 import SuiActions from "./SuiActions"
+import StatusView from "./StatusView"
 
 const MainView: React.FC = () => {
  
@@ -71,6 +72,7 @@ const MainView: React.FC = () => {
       <Panel>
         <Tabbar {...selectTab(uiState)} dispatch={dispatch} />
         <EditorView  {...selectEditor(uiState)} dispatch={dispatch} />
+        <StatusView></StatusView>
         <Statusbar />
       </Panel>
     </div>

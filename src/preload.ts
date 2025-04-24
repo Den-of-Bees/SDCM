@@ -8,7 +8,7 @@ import { SessionData } from './components/system/StateEngine';
 //     // we can also expose variables, not just functions
 //   }
 
-const fileAPI = {
+export const fileAPI = {
   loadFile: (filePath: string) => ipcRenderer.invoke("load-file", filePath),
   
   onMessage: (callback:(msg:string)=>void) => ipcRenderer.on("msg", 
@@ -20,21 +20,27 @@ const fileAPI = {
   saveFile: (filePath: string, content: string) => ipcRenderer.invoke('save-file', filePath, content),
 }
 
-const suiClient = {
+export const suiClient = {
   loadConfig: (filePath: string) => ipcRenderer.invoke("load-sui-config", filePath),
   runSuiBuild: (buildDir: string, outputDir: string) => ipcRenderer.invoke('sui-build', buildDir, outputDir),
   runSuiDeploy: (buildDir: string, outputDir: string) => ipcRenderer.invoke('sui-deploy', buildDir, outputDir),
   // we can also expose variables, not just functions
 }
 
-const networkAPI = {
+export const networkAPI = {
   loadFile: (filePath: string) => ipcRenderer.invoke("load-net-file", filePath),
   // we can also expose variables, not just functions
 }
 
-const sessionAPI = {
+export const sessionAPI = {
   saveSession: async (data: Partial<SessionData>) => ipcRenderer.invoke('save-session', data),
   loadSession: () => ipcRenderer.invoke("load-session"),
+  // we can also expose variables, not just functions
+}
+
+const PTY = {
+  sendInput: async (input: string) => {console.log(`From xterm: ${input}`);ipcRenderer.send('pty-write', input)},
+  onOutput: (listner:(data:string)=>void) => ipcRenderer.on("pty-cast", (_,data)=>{console.log('From pty');listner(data)}),
   // we can also expose variables, not just functions
 }
 
@@ -45,6 +51,7 @@ declare global {
       runSuiDeploy: (buildDir: string, outputDir: string) => Promise<{ success: boolean; message: string }>,
     };
     fileAPI: typeof fileAPI;
+    PTY: typeof PTY;
     networkAPI: typeof networkAPI;
     sessionAPI: {
       loadSession: () => Promise<SessionData>;
@@ -56,3 +63,4 @@ contextBridge.exposeInMainWorld("fileAPI", fileAPI)
 contextBridge.exposeInMainWorld("suiClient", suiClient)
 contextBridge.exposeInMainWorld("networkAPI", networkAPI)
 contextBridge.exposeInMainWorld("sessionAPI", sessionAPI)
+contextBridge.exposeInMainWorld("PTY", PTY)

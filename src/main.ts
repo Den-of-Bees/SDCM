@@ -6,6 +6,7 @@ import { runSuiBuild } from './scripts/build'
 import { SessionManager } from './HAL/sessionManager'
 import { buildFileTree } from './HAL/buildFileTree'
 import { runSuiDeploy } from './scripts/deploy'
+import {  startPTY } from './HAL/PTYService'
 
 let mainWindow: BrowserWindow
 
@@ -69,16 +70,27 @@ ipcMain.handle('validate-path', async (_, pathToCheck: string) => {
     return false
   }
 })
+const start = async ()=>{
+  const {ptyOnData,ptyWrite}=startPTY()
+  ipcMain.on('pty-write',(_, data)=>{ptyWrite(data)})
+  ptyOnData((data:string)=> {console.log('pre send');mainWindow.webContents.send('pty-cast',data)})
+  return Promise.resolve()
+}
+
+
 
 const createWindow = async () => {
+  
   mainWindow = new BrowserWindow({
     width: 1024,
     height: 768,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false, // Disable Node.js integration in renderer process for security
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
+      allowRunningInsecureContent: false, // Disable running insecure content
     },
   })
 
@@ -87,8 +99,10 @@ const createWindow = async () => {
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`))
   }
-
+  
   mainWindow.webContents.openDevTools()
+  await start()
+  
 }
 
 if (started) {
