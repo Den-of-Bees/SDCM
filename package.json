@@ -45,6 +45,7 @@
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
+    "@homebridge/node-pty-prebuilt-multiarch": "^0.12.0",
     "@monaco-editor/react": "^4.7.0",
     "@mysten/sui": "^1.27.0",
     "@tailwindcss/postcss": "^4.1.0",
@@ -53,7 +54,6 @@
     "electron-squirrel-startup": "^1.0.1",
     "lucide-react": "^0.486.0",
     "monaco-editor": "^0.52.2",
-    "node-pty": "^1.0.0",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

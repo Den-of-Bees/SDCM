@@ -3,7 +3,7 @@
 
 // ipcmain.on  reder -> to pty.write
 
-import pty, { IPty } from 'node-pty';
+import pty, { IPty } from '@homebridge/node-pty-prebuilt-multiarch';
 import os from 'os';
 
 const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
