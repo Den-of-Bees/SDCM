@@ -70,10 +70,17 @@ ipcMain.handle('validate-path', async (_, pathToCheck: string) => {
     return false
   }
 })
+
 const start = async ()=>{
-  const {ptyOnData,ptyWrite}=startPTY()
-  ipcMain.on('pty-write',(_, data)=>{ptyWrite(data)})
-  ptyOnData((data:string)=> {console.log('pre send');mainWindow.webContents.send('pty-cast',data)})
+  const sessionManager = await SessionManager.init();
+  const session = await sessionManager.loadSession();
+  const cwd = session.lastOpenedPath || process.env.HOME!;
+  
+  const { ptyOnData, ptyWrite, resize } = startPTY(mainWindow, cwd);
+  ipcMain.on('pty-write',  (_e, d) => ptyWrite(d));
+  ipcMain.on('pty-resize', (_e, c, r) => resize(c, r));  
+  ptyOnData((data:string)=> {console.log('pre send');
+  mainWindow.webContents.send('pty-cast',data)})
   return Promise.resolve()
 }
 

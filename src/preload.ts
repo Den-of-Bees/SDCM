@@ -38,11 +38,46 @@ export const sessionAPI = {
   // we can also expose variables, not just functions
 }
 
+// PTY section for preload.ts
 const PTY = {
-  sendInput: async (input: string) => {console.log(`From xterm: ${input}`);ipcRenderer.send('pty-write', input)},
-  onOutput: (listner:(data:string)=>void) => ipcRenderer.on("pty-cast", (_,data)=>{console.log('From pty');listner(data)}),
-  // we can also expose variables, not just functions
-}
+  sendInput: async (input: string) => {
+    console.log(`[Renderer] Sending to PTY: ${input.replace(/\r/g, '\\r').replace(/\n/g, '\\n')}`);
+    ipcRenderer.send('pty-write', input);
+  },
+  
+  onOutput: (listener: (data: string) => void) => {
+    console.log('[Renderer] Registering PTY output listener');
+    
+    // Debug logging of all received messages
+    const wrappedListener = (event: any, data: string) => {
+      console.log(`[Renderer] PTY data received: ${data.length} chars`);
+      console.log(`[Renderer] PTY data preview: ${data.substring(0, 50).replace(/\r/g, '\\r').replace(/\n/g, '\\n')}${data.length > 50 ? '...' : ''}`);
+      listener(data);
+    };
+    
+    // Remove any existing listeners to prevent duplicates
+    ipcRenderer.removeAllListeners('pty-cast');
+    
+    // Register the new listener
+    ipcRenderer.on('pty-cast', wrappedListener);
+    
+    // Return unsubscribe function
+    return () => {
+      ipcRenderer.removeListener('pty-cast', wrappedListener);
+    };
+  },
+  
+  onResize: (cols: number, rows: number) => {
+    console.log(`[Renderer] Resizing PTY to: ${cols}x${rows}`);
+    ipcRenderer.send('pty-resize', cols, rows);
+  },
+  
+  // Send a test command to see if the PTY is responsive
+  testConnection: () => {
+    console.log('[Renderer] Testing PTY connection');
+    ipcRenderer.send('pty-write', 'echo PTY TEST CONNECTION\r');
+  }
+};
 
 declare global {
   interface Window {

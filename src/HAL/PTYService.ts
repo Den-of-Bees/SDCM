@@ -1,38 +1,77 @@
-// pty.on pty -> render (needs webcontent)
-
-
-// ipcmain.on  reder -> to pty.write
-
-import pty, { IPty } from '@homebridge/node-pty-prebuilt-multiarch';
 import os from 'os';
+import { BrowserWindow } from 'electron';
+import pty, { IPty } from '@homebridge/node-pty-prebuilt-multiarch';
 
-const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-let ptyProcess:IPty = null!
-// wrap in createSession takes browser window or window service
-// seesion either sevice or local ** wraper around map api set and delete** 
-export const startPTY = ()=>{
-  ptyProcess = pty.spawn(shell, [], {
-    name: 'xterm-color',
+export const startPTY = (window: BrowserWindow, initialCwd: string) => {
+  const isWin = os.platform() === 'win32';
+  let ptyProcess: IPty;
+  
+  const formattedCwd = isWin ? initialCwd.replace(/\\/g, '\\\\') : initialCwd;
+  
+  let shell, args;
+  if (isWin) {
+    shell = 'cmd.exe';
+    args = ['/K', `cd /d "${formattedCwd}" && cls`];
+  } else {
+    shell = 'bash';
+    args = ['--login', '-i'];
+  }
+  
+  console.log(`Spawning shell: ${shell} with args: ${args.join(' ')}`);
+  
+  const env = {
+    ...process.env,
+    ...(isWin ? { 
+      TERM: 'xterm-256color',
+      PROMPT: '$P$G'
+    } : { 
+      PS1: '\\u@\\h:\\w\\$ ' 
+    }),
+  };
+  
+  ptyProcess = pty.spawn(shell, args, {
+    name: isWin ? 'windows-terminal' : 'xterm-color',
+    cwd: initialCwd,
     cols: 80,
     rows: 24,
-    cwd: process.env.HOME,
-    env: process.env
+    env,
   });
-
-return {
-ptyWrite:(data:string)=>{
-  console.log(`recieved ${data}`)
-  ptyProcess.write(data)
-}
-,
-ptyOnData: (listener:(data:string)=>void)=>{
-  ptyProcess.onData(listener)
-  listener("hello from the terminal")
-  console.log("hello from the terminal")
-}}
-}
-// implement resize ptyProcess.resize
-
-// session will call ptyProcess.kill
-// on the close event of the window containing the event sender / webcontents
-// and remove from seesion map
+  
+  console.log('PTY process spawned successfully');
+  
+  setTimeout(() => {
+    console.log('Sending commands to force prompt display');
+    if (isWin) {
+      ptyProcess.write('echo .\r');
+      
+      setTimeout(() => {
+        ptyProcess.write('cd\r');
+      }, 200);
+    } else {
+      // For Unix systems
+      ptyProcess.write('echo ""\r');
+      setTimeout(() => {
+        ptyProcess.write('pwd\r');
+      }, 200);
+    }
+  }, 200);
+  
+  return {
+    ptyWrite: (data: string) => {
+      console.log(`Writing to PTY: ${data.replace(/\r/g, '\\r').replace(/\n/g, '\\n')}`);
+      ptyProcess.write(data);
+    },
+    ptyOnData: (listener: (data: string) => void) => {
+      console.log('Registering PTY data listener');
+      ptyProcess.onData((data: string) => {
+        console.log(`PTY data received: ${data.length} chars`);
+        listener(data);
+      });
+    },
+    resize: (cols: number, rows: number) => {
+      console.log(`Resizing PTY to: ${cols}x${rows}`);
+      ptyProcess.resize(cols, rows);
+      window.webContents.send('pty-resized', { cols, rows });
+    }
+  };
+};
