@@ -27,6 +27,29 @@ export const suiClient = {
   // we can also expose variables, not just functions
 }
 
+export const SuiBuildStream = {
+  start: (buildDir: string, outputDir: string) => {
+    console.log('Starting SuiBuildStream');
+    ipcRenderer.send('sui-build-stream', buildDir, outputDir);
+  },
+  onData: (cb: (data: string) => void) => {
+    const listener = (_: any, data: string) => cb(data);
+    ipcRenderer.on('sui-build-stream-data', listener);
+    return () => ipcRenderer.removeListener('sui-build-stream-data', listener);
+  },
+  onEnd: (cb: (code: number) => void) => {
+    const listener = (_: any, code: number) => cb(code);
+    ipcRenderer.on('sui-build-stream-end', listener);
+    return () => ipcRenderer.removeListener('sui-build-stream-end', listener);
+  },
+  onError: (cb: (err: string) => void) => {
+    const listener = (_: any, err: string) => cb(err);
+    ipcRenderer.on('sui-build-stream-error', listener);
+    return () => ipcRenderer.removeListener('sui-build-stream-error', listener);
+  }
+};
+
+
 export const networkAPI = {
   loadFile: (filePath: string) => ipcRenderer.invoke("load-net-file", filePath),
   // we can also expose variables, not just functions
@@ -91,11 +114,15 @@ declare global {
     sessionAPI: {
       loadSession: () => Promise<SessionData>;
       saveSession: (data: Partial<SessionData>) => Promise<boolean>;
-  };}
+  };
+    SuiBuildStream: typeof SuiBuildStream;
 }
+}
+
 
 contextBridge.exposeInMainWorld("fileAPI", fileAPI)
 contextBridge.exposeInMainWorld("suiClient", suiClient)
 contextBridge.exposeInMainWorld("networkAPI", networkAPI)
 contextBridge.exposeInMainWorld("sessionAPI", sessionAPI)
 contextBridge.exposeInMainWorld("PTY", PTY)
+contextBridge.exposeInMainWorld("SuiBuildStream", SuiBuildStream)

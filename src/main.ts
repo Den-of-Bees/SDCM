@@ -7,6 +7,7 @@ import { SessionManager } from './HAL/sessionManager'
 import { buildFileTree } from './HAL/buildFileTree'
 import { runSuiDeploy } from './scripts/deploy'
 import {  startPTY } from './HAL/PTYService'
+import { spawn } from 'child_process'; // Add this import if not present
 
 let mainWindow: BrowserWindow
 
@@ -70,6 +71,33 @@ ipcMain.handle('validate-path', async (_, pathToCheck: string) => {
     return false
   }
 })
+
+ipcMain.on('sui-build-stream', (event, buildDir: string, outputDir: string) => {
+  const child = spawn('sui', [
+    'move',
+    'build',
+    '--dump-bytecode-as-base64',
+    '--path',
+    buildDir,
+    '--json-errors'
+  ], { shell: true });
+
+  child.stdout.on('data', (data) => {
+    event.sender.send('sui-build-stream-data', data.toString());
+  });
+
+  child.stderr.on('data', (data) => {
+    event.sender.send('sui-build-stream-data', data.toString());
+  });
+
+  child.on('close', (code) => {
+    event.sender.send('sui-build-stream-end', code);
+  });
+
+  child.on('error', (err) => {
+    event.sender.send('sui-build-stream-error', err.message);
+  });
+});
 
 const start = async ()=>{
   const sessionManager = await SessionManager.init();

@@ -17,6 +17,8 @@ export async function runSuiBuild({ moveDir, outputDir }: BuildOptions): Promise
         mkdirSync(outputDir, { recursive: true });
     }
 
+    console.log('Starting build process');
+
     return new Promise((resolve) => {
         const process = spawn('sui', [
             'move',
