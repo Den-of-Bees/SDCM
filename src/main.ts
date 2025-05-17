@@ -99,6 +99,20 @@ ipcMain.on('sui-build-stream', (event, buildDir: string, outputDir: string) => {
   });
 });
 
+ipcMain.on('sui-deploy-stream', async (event, buildDir: string, outputDir: string) => {
+  await runSuiDeploy({
+    moveDir: buildDir,
+    outputDir,
+    onData: (data: string) => {
+      event.sender.send('sui-deploy-stream-data', data);
+    }
+  }).then((result: any) => {
+    event.sender.send('sui-deploy-stream-end', result.success ? 0 : 1);
+  }).catch((err: any) => {
+    event.sender.send('sui-deploy-stream-error', err.message || String(err));
+  });
+});
+
 const start = async ()=>{
   const sessionManager = await SessionManager.init();
   const session = await sessionManager.loadSession();

@@ -5,6 +5,5 @@ export default defineConfig({build: {
   rollupOptions: {
     external: [
       '@homebridge/node-pty-prebuilt-multiarch',
-      'node-pty'
     ]  },
 },});

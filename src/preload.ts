@@ -49,6 +49,27 @@ export const SuiBuildStream = {
   }
 };
 
+export const SuiDeployStream = {
+  start: (buildDir: string, outputDir: string) => {
+    console.log('Starting SuiDeployStream at the directory: ' + buildDir + ' and output directory: ' + outputDir);
+    ipcRenderer.send('sui-deploy-stream', buildDir, outputDir);
+  },
+  onData: (cb: (data: string) => void) => {
+    const listener = (_: any, data: string) => cb(data);
+    ipcRenderer.on('sui-deploy-stream-data', listener);
+    return () => ipcRenderer.removeListener('sui-deploy-stream-data', listener);
+  },
+  onEnd: (cb: (code: number) => void) => {
+    const listener = (_: any, code: number) => cb(code);
+    ipcRenderer.on('sui-deploy-stream-end', listener);
+    return () => ipcRenderer.removeListener('sui-deploy-stream-end', listener);
+  },
+  onError: (cb: (err: string) => void) => {
+    const listener = (_: any, err: string) => cb(err);
+    ipcRenderer.on('sui-deploy-stream-error', listener);
+    return () => ipcRenderer.removeListener('sui-deploy-stream-error', listener);
+  }
+};
 
 export const networkAPI = {
   loadFile: (filePath: string) => ipcRenderer.invoke("load-net-file", filePath),
@@ -116,6 +137,7 @@ declare global {
       saveSession: (data: Partial<SessionData>) => Promise<boolean>;
   };
     SuiBuildStream: typeof SuiBuildStream;
+    SuiDeployStream: typeof SuiDeployStream;
 }
 }
 
@@ -126,3 +148,4 @@ contextBridge.exposeInMainWorld("networkAPI", networkAPI)
 contextBridge.exposeInMainWorld("sessionAPI", sessionAPI)
 contextBridge.exposeInMainWorld("PTY", PTY)
 contextBridge.exposeInMainWorld("SuiBuildStream", SuiBuildStream)
+contextBridge.exposeInMainWorld("SuiDeployStream", SuiDeployStream)

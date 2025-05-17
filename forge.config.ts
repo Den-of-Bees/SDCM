@@ -11,12 +11,9 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
   },
-<<<<<<< HEAD
   rebuildConfig: {
     ignoreModules: ['@homebridge/node-pty-prebuilt-multiarch'],
   },
-=======
->>>>>>> 9686a1025013b92354df599f9c253f0a9a6221b2
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
   plugins: [
     new VitePlugin({

@@ -154,12 +154,44 @@ const SuiActions = () => {
         try {
             if (!await validateDirectories()) return;
 
-            const result = await window.suiClient.runSuiDeploy(currentDir, outputDir);
-            if (result.success) {
-                updateOutput(`Deploy successful: ${result.message}`);
-            } else {
-                updateOutput(`Deploy failed: ${result.message}`, true);
+            if (terminalRef.current) {
+                terminalRef.current.clear();
             }
+            terminalEventEmitter.emit('\r\n--- Running SUI Deploy ---\r\n');
+
+            // Remove previous listeners if any
+            if (dataUnsub) { dataUnsub(); }
+            if (endUnsub) { endUnsub(); }
+            if (errorUnsub) { errorUnsub(); }
+
+            dataUnsub = window.SuiDeployStream.onData((data) => {
+                let formatted = '';
+                try {
+                    const parsed = JSON.parse(data);
+                    if (Array.isArray(parsed)) {
+                        formatted = parsed.map(item =>
+                            `[${item.level}] ${item.file}:${item.line}:${item.column} - ${item.msg}`
+                        ).join('\r\n');
+                    } else if (typeof parsed === 'object') {
+                        formatted = JSON.stringify(parsed, null, 2);
+                    }
+                } catch {
+                    formatted = data;
+                }
+                terminalEventEmitter.emit(formatted + '\r\n');
+            });
+
+            endUnsub = window.SuiDeployStream.onEnd((code) => {
+                terminalEventEmitter.emit(`\r\nDeploy process exited with code ${code}\r\n`);
+                setActionState(prev => ({ ...prev, isLoading: false }));
+            });
+
+            errorUnsub = window.SuiDeployStream.onError((err) => {
+                terminalEventEmitter.emit(`\r\nError: ${err}\r\n`);
+                setActionState(prev => ({ ...prev, isLoading: false, error: err }));
+            });
+
+            window.SuiDeployStream.start(currentDir, outputDir);
         } catch (error) {
             updateOutput(`Unexpected error: ${error}`, true);
         }
