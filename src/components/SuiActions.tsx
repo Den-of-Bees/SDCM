@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SessionData } from './system/StateEngine';
 import { terminalEventEmitter } from './terminalEvents';
+import OutputTerminal, { OutputTerminalHandle } from './OutputTerminal';
 
 interface ActionState {
     isLoading: boolean;
@@ -18,6 +19,7 @@ const SuiActions = () => {
     const [session, setSession] = useState<SessionData | null>(null);
     const [currentDir, setCurrentDir] = useState<string>('');
     const [outputDir, setOutputDir] = useState<string>('');
+    const terminalRef = useRef<OutputTerminalHandle>(null);
 
     let dataUnsub: (() => void) | null = null;
     let endUnsub: (() => void) | null = null;
@@ -94,7 +96,9 @@ const SuiActions = () => {
                 return;
             }
 
-            console.log('Directories validated, starting build stream.');
+            if (terminalRef.current) {
+                terminalRef.current.clear();
+            }
             terminalEventEmitter.emit('\r\n--- Running SUI Build ---\r\n');
             window.SuiBuildStream.start(currentDir, outputDir);
 
@@ -105,7 +109,22 @@ const SuiActions = () => {
 
             dataUnsub = window.SuiBuildStream.onData((data) => {
                 console.log('Received build data:', data);
-                terminalEventEmitter.emit(data);
+                // Try to parse as JSON
+                let formatted = '';
+                try {
+                    const parsed = JSON.parse(data);
+                    if (Array.isArray(parsed)) {
+                        formatted = parsed.map(item =>
+                            `[${item.level}] ${item.file}:${item.line}:${item.column} - ${item.msg}`
+                        ).join('\r\n');
+                    } else if (typeof parsed === 'object') {
+                        formatted = JSON.stringify(parsed, null, 2);
+                    }
+                } catch {
+                    // Not JSON, just use as-is
+                    formatted = data;
+                }
+                terminalEventEmitter.emit(formatted + '\r\n');
             });
 
             endUnsub = window.SuiBuildStream.onEnd((code) => {
